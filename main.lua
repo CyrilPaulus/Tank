@@ -11,10 +11,13 @@ function love.load()
 end
 
 function love.update(dt)
-	tank:readInput(love.keyboard.isDown("up"),
-			love.keyboard.isDown("down"),
-			love.keyboard.isDown("left"),
-			love.keyboard.isDown("right"))
+   tank:readInput(love.keyboard.isDown("up"),
+		  love.keyboard.isDown("down"),
+		  love.keyboard.isDown("left"),
+		  love.keyboard.isDown("right"),
+		  love.mouse.isDown("l"),
+		  love.mouse.isDown("r"))
+   tank:lookAt(love.mouse.getX(), love.mouse.getY())
    tank:update(dt)
 end
 
