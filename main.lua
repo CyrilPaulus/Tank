@@ -1,12 +1,17 @@
 
+   require "class"
+   require "utils"
+   require "tank"
+
 function love.load()
-	require "class"
-	require "utils"
-	require "tank"
-	
+
+
+   love.audio.setDistanceModel('exponent')
+   love.audio.setPosition(400, 300, 0)
+   
    background = love.graphics.newImage("res/world/grass.jpg")
    
-   tank = Tank:new(0,0)
+   tank = Tank:new(400, 300)
    
 end
 

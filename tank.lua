@@ -4,6 +4,7 @@ Tank = class:new()
 tank_base = love.graphics.newImage("res/tank/tank_base.png")
 tank_smoke = love.graphics.newImage("res/tank/smoke.png")
 
+
 function Tank:init(x, y)
    self.height = 64
    self.width = 128
@@ -46,8 +47,10 @@ function Tank:init(x, y)
    self.backward = false
    self.left = false
    self.right = false
-
-   
+   self.idle_src = love.audio.newSource("res/tank/idle_loop.ogg")
+   self.idle_src:setLooping(true)
+   self.idle_src:setDistance(400,800)
+   self.idle_src:play()
 end
 
 function Tank:readInput(f, b, l, r, ml, mr)
@@ -69,12 +72,14 @@ function Tank:update(dt)
    self.particleLeft:setDirection(math.rad(self.angle - 180))
    self.particleRight:setDirection(math.rad(self.angle - 180))
 
-   if(self.forward or self.backward or self.left or self.right) then
+   if(self.forward or self.backward) then
       self.particleLeft:setEmissionRate(10)
       self.particleRight:setEmissionRate(10)
+      self.idle_src:setPitch(0.5 + math.abs(self.speed / self.maxSpeed))
    else
       self.particleLeft:setEmissionRate(2)
       self.particleRight:setEmissionRate(2)
+      self.idle_src:setPitch(0.5)
    end
 
    if (self.forward) then
@@ -122,6 +127,8 @@ function Tank:update(dt)
    
    self.x = self.x + math.cos(math.rad(self.angle)) * self.speed * dt
    self.y = self.y + math.sin(math.rad(self.angle)) * self.speed * dt
+
+   self.idle_src:setPosition(self.x, self.y, 0)
 end
 
 function Tank:draw()
@@ -155,7 +162,7 @@ function TankTurret:init(parent)
    self.width = 128
    self.angle = 0
    self.bullets = {}
-   self.firedelay = 0.5
+   self.firedelay = 1.5
    self.firecounter = 0
    self.fire = true
    self.cannon = true
@@ -164,6 +171,8 @@ function TankTurret:init(parent)
    self.drawMuzzle = false
    self.muzzleTime = 0
    self.maxMuzzleTime = 0.1
+   self.cannon_src = love.audio.newSource("res/tank/cannon_shot.ogg")
+   self.cannon_src:setDistance(400,800)
 end
 
 function TankTurret:lookAt(x, y) 
@@ -189,6 +198,11 @@ function TankTurret:update(dt)
       else
 	 self.cannonX, self.cannonY = rot(90, -6, math.rad(self.angle))
       end
+      self.cannon_src:setPosition(self.x + self.cannonX, self.y + self.cannonY, 0)
+      if(not self.cannon_src:isStopped()) then
+	 self.cannon_src:stop()
+      end
+      self.cannon_src:play()
       self.cannon = not self.cannon
       table.insert(self.bullets, TankBullet:new(self, self.x + self.cannonX, self.y + self.cannonY))
       self.firecounter = 0
