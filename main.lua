@@ -1,5 +1,5 @@
 
-   require "32log"
+   require "middleclass"
    require "utils"
    require "entity"
    require "decal"

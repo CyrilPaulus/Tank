@@ -4,38 +4,32 @@
 tank_base = love.graphics.newImage("res/tank/tank_base.png")
 tank_smoke = love.graphics.newImage("res/tank/smoke.png")
 
-class "Tank" : extends(Entity){
-	width = 128;
-	height = 64;
-	
-	image = tank_base;
-	
-	speed = 0;
-	maxSpeed = 100;
-	maxRearSpeed = 50;
-	acceleration = 10;
-	deceleration = 60;
-	rotSpeed = 0.34906585;
-	
-	turret = nil;
-	particleLeft = nil;
-	particleRight = nil;
-	
-	forward = false;
-	backward = false;
-	left = false;
-	right = false;
-	
-	idle_src = nil;
-	
-	lastPosX = 0;
-	lastPosY = 0;
-}
+Tank = class("Tank", Entity)
 
-function Tank:__init(x, y)
+function Tank:initialize(x, y)	
+	Entity.initialize(self)
+	self.speed = 0
+	self.maxSpeed = 100
+	self.rearSpeed = 50
+	self.acceleration = 10
+	self.deceleration = 60
+	self.rotSpeed = 0.34906585
+	self.forward = false
+	self.backward = false
+	self.left = false
+	self.right = false
+	self.lastPosX = 0
+	self.lastPosY = 0
 	self.x = x
 	self.y = y
-  self.turret = TankTurret:new(self)
+	self.offsetX = 64
+	self.offsetY = 32
+  self.turret = TankTurret:new()
+  self.turret:setParent(self)
+  
+  self.image = tank_base;
+  self.width = 128;
+	self.height = 64;
    
   self.particleLeft = love.graphics.newParticleSystem(tank_smoke, 128)
   self.particleLeft:setEmissionRate(2)
@@ -148,7 +142,7 @@ function Tank:update(dt)
 end
 
 function Tank:draw()
-   self.super.draw(self)	
+   Entity.draw(self)	
    self.turret:draw()
    love.graphics.draw(self.particleLeft)
    love.graphics.draw(self.particleRight)
@@ -156,46 +150,38 @@ function Tank:draw()
 end
 
 function Tank:rotate(rad)
-   self.super.rotate(self, rad)
+   Entity.rotate(self, rad)
    self.turret:rotate(rad)
 end
 
 function Tank:lookAt(x, y) 
-   self.turret:lookAt(x, y)
+	self.turret:lookAt(x, y)
 end
 
 tank_turret = love.graphics.newImage("res/tank/tank_turret.png")
 tank_muzzleflash = love.graphics.newImage("res/tank/muzzleflash.png")
 
-class "TankTurret" {
-	x = 0;
-	y = 0;
-	angle = 0;
-	parent = nil;
-	
-	width = 128;
-	height = 64;
-	
-	bullets = nil;
-	
-	firedelay = 1.5;
-	firecounter = 0;
-	fire = true;
-	cannon = true;
-	cannonX = 0;
-	cannonY = 0;
-	drawMuzzle = false;
-	muzzleTime = 0;
-	maxMuzzleTime = 0.1;
-	cannon_src = nil;
-}
-function TankTurret:__init(parent)
-   self.x = parent.x
-   self.y = parent.y
-	 self.bullets = {}
-   self.parent = parent   
-   self.cannon_src = love.audio.newSource("res/tank/cannon_shot.ogg")
-   self.cannon_src:setDistance(400,800)
+TankTurret = class("TankTurret", Entity)
+
+function TankTurret:initialize()
+	Entity.initialize(self)
+	self.fireDelay = 1.5
+	self.firecounter = 0
+	self.fire = true
+	self.cannon = true
+	self.cannonX = 0
+	self.cannonY = 0
+	self.drawMuzzle = false
+	self.muzzleTime = 0
+	self.maxMuzzleTime = 0.1
+	self.width = 128
+	self.height = 64
+	self.offsetX = 39
+	self.offsetY = 31.5
+	self.image = tank_turret;
+	self.bullets = {}
+    self.cannon_src = love.audio.newSource("res/tank/cannon_shot.ogg")
+	self.cannon_src:setDistance(400,800)
 end
 
 function TankTurret:lookAt(x, y) 
@@ -203,6 +189,8 @@ function TankTurret:lookAt(x, y)
 end				 
 
 function TankTurret:update(dt)
+	Entity.update(self, dt)
+	
    if(self.drawMuzzle) then
       self.muzzleTime = self.muzzleTime + dt
       if(self.muzzleTime > self.maxMuzzleTime) then
@@ -211,10 +199,8 @@ function TankTurret:update(dt)
       end
    end
    self.firecounter = self.firecounter + dt
-   self.x = self.parent.x
-   self.y = self.parent.y
-   
-   if(self.fire and self.firecounter > self.firedelay) then
+      
+   if(self.fire and self.firecounter > self.fireDelay) then
       self.drawMuzzle = true
       if (self.cannon) then
 	 self.cannonX, self.cannonY = rot(90, 6, self.angle)
@@ -242,7 +228,7 @@ function TankTurret:update(dt)
 end
 
 function TankTurret:draw()
-   love.graphics.draw(tank_turret, self.x, self.y, self.angle, 1,1, 39, 31.5)
+	Entity.draw(self)  
    if(self.drawMuzzle) then
       love.graphics.draw(tank_muzzleflash, self.x + self.cannonX, self.y + self.cannonY, self.angle, 1, 1, 15, 6)
    end
@@ -265,19 +251,13 @@ end
 
 
 tank_bullet = love.graphics.newImage("res/tank/bullet.png")
+TankBullet = class("TankBullet")
 
-class "TankBullet" {
-	x = 0;
-	y = 0;
-	angle = 0;
-	parent = nil;
-	
-	speed = 250;
-	lifetime = 10;
-	time = 0;
-}
-
-function TankBullet:__init(parent, x, y) 
+function TankBullet:initialize(parent, x, y) 
+	self.angle = 0
+	self.speed = 250
+	self.lifetime = 10
+	self.time = 0
    self.parent = parent
    self.angle = parent.angle
    self.x = x or parent.x + math.cos(self.angle) * 80
