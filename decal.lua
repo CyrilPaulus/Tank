@@ -1,8 +1,14 @@
-Decal = class:new()
+
+class "Decal" {
+	parent = nil;
+	buffer_size = 1024;
+	current_index = 0;
+	buffer = {};
+}
 
 tank_track = love.graphics.newImage("res/tank/tracks.png")
 
-function Decal:init(buffer_size)
+function Decal:__init(buffer_size)
    self.parent = parent
    self.buffer_size = buffer_size or 1024
    self.current_index = 0

@@ -1,58 +1,71 @@
-Tank = class:new()
+
 
 
 tank_base = love.graphics.newImage("res/tank/tank_base.png")
 tank_smoke = love.graphics.newImage("res/tank/smoke.png")
 
+class "Tank" {
+	x = 0;
+	y = 0;
+	angle = 0;
+	width = 128;
+	height = 64;
+	
+	image = tank_base;
+	
+	speed = 0;
+	maxSpeed = 100;
+	maxRearSpeed = 50;
+	acceleration = 10;
+	deceleration = 60;
+	rotSpeed = 20;
+	
+	turret = nil;
+	particleLeft = nil;
+	particleRight = nil;
+	
+	forward = false;
+	backward = false;
+	left = false;
+	right = false;
+	
+	idle_src = nil;
+	
+	lastPosX = 0;
+	lastPosY = 0;
+}
 
-function Tank:init(x, y)
-   self.height = 64
-   self.width = 128
-   self.x = x
-   self.y = y
-   self.angle = 0
-   self.image = tank_base
-   self.speed = 0
-   self.maxSpeed = 100
-   self.maxRearSpeed = 50
-   self.acceleration = 10
-   self.deceleration = 60
-   self.rotSpeed = 20
-   self.turret = TankTurret:new(self)
+function Tank:__init(x, y)
+	self.x = x
+	self.y = y
+  self.turret = TankTurret:new(self)
    
-   self.particleLeft = love.graphics.newParticleSystem(tank_smoke, 128)
-   self.particleLeft:setEmissionRate(2)
-   self.particleLeft:setLifetime              (1)
-   self.particleLeft:setParticleLife          (4)		
-   self.particleLeft:setSpread                (2)
-   self.particleLeft:setSpeed                 (10, 30)	
-   self.particleLeft:setSizeVariation         (1)
-   self.particleLeft:setSizes(0.5, 0.8)
-   self.particleLeft:setColors(50,50,50,255,180,180,180,255)
-   self.particleLeft:stop()
+  self.particleLeft = love.graphics.newParticleSystem(tank_smoke, 128)
+  self.particleLeft:setEmissionRate(2)
+  self.particleLeft:setLifetime              (1)
+  self.particleLeft:setParticleLife          (4)		
+  self.particleLeft:setSpread                (2)
+  self.particleLeft:setSpeed                 (10, 30)	
+  self.particleLeft:setSizeVariation         (1)
+  self.particleLeft:setSizes(0.5, 0.8)
+  self.particleLeft:setColors(50,50,50,255,180,180,180,255)
+	self.particleLeft:stop()
    
-   self.particleRight = love.graphics.newParticleSystem(tank_smoke, 128)
-   self.particleRight:setEmissionRate(2)
-   self.particleRight:setLifetime              (1)
-   self.particleRight:setParticleLife          (4)		
-   self.particleRight:setSpread                (2)
-   self.particleRight:setSpeed                 (10, 30)	
-   self.particleRight:setSizeVariation         (1)
-   self.particleRight:setSizes(0.5, 0.8)
-   self.particleRight:setColors(50,50,50,255,180,180,180,255)
-   self.particleRight:stop()
-   
-   self.forward = false
-   self.backward = false
-   self.left = false
-   self.right = false
-   self.idle_src = love.audio.newSource("res/tank/idle_loop.ogg")
-   self.idle_src:setLooping(true)
-   self.idle_src:setDistance(400,800)
-   self.idle_src:play()
-
-   self.lastPosX = 0
-   self.lastPosY = 0
+  self.particleRight = love.graphics.newParticleSystem(tank_smoke, 128)
+  self.particleRight:setEmissionRate(2)
+  self.particleRight:setLifetime              (1)
+  self.particleRight:setParticleLife          (4)		
+  self.particleRight:setSpread                (2)
+  self.particleRight:setSpeed                 (10, 30)	
+  self.particleRight:setSizeVariation         (1)
+  self.particleRight:setSizes(0.5, 0.8)
+  self.particleRight:setColors(50,50,50,255,180,180,180,255)
+  self.particleRight:stop()
+  
+  self.idle_src = love.audio.newSource("res/tank/idle_loop.ogg")
+  self.idle_src:setLooping(true)
+  self.idle_src:setDistance(400,800)
+  self.idle_src:play() 
 end
 
 function Tank:readInput(f, b, l, r, ml, mr)
@@ -154,28 +167,36 @@ function Tank:lookAt(x, y)
    self.turret:lookAt(x, y)
 end
 
-TankTurret = class:new()
-
 tank_turret = love.graphics.newImage("res/tank/tank_turret.png")
 tank_muzzleflash = love.graphics.newImage("res/tank/muzzleflash.png")
 
-function TankTurret:init(parent)
+class "TankTurret" {
+	x = 0;
+	y = 0;
+	angle = 0;
+	parent = nil;
+	
+	width = 128;
+	height = 64;
+	
+	bullets = nil;
+	
+	firedelay = 1.5;
+	firecounter = 0;
+	fire = true;
+	cannon = true;
+	cannonX = 0;
+	cannonY = 0;
+	drawMuzzle = false;
+	muzzleTime = 0;
+	maxMuzzleTime = 0.1;
+	cannon_src = nil;
+}
+function TankTurret:__init(parent)
    self.x = parent.x
    self.y = parent.y
-   self.parent = parent
-   self.height = 64
-   self.width = 128
-   self.angle = 0
-   self.bullets = {}
-   self.firedelay = 1.5
-   self.firecounter = 0
-   self.fire = true
-   self.cannon = true
-   self.cannonX = 0
-   self.cannonY = 0
-   self.drawMuzzle = false
-   self.muzzleTime = 0
-   self.maxMuzzleTime = 0.1
+	 self.bullets = {}
+   self.parent = parent   
    self.cannon_src = love.audio.newSource("res/tank/cannon_shot.ogg")
    self.cannon_src:setDistance(400,800)
 end
@@ -244,24 +265,32 @@ end
 
 
 
-TankBullet = class:new()
+
 
 tank_bullet = love.graphics.newImage("res/tank/bullet.png")
 
-function TankBullet:init(parent, x, y) 
+class "TankBullet" {
+	x = 0;
+	y = 0;
+	angle = 0;
+	parent = nil;
+	
+	speed = 250;
+	lifetime = 10;
+	time = 0;
+}
+
+function TankBullet:__init(parent, x, y) 
    self.parent = parent
    self.angle = parent.angle
    self.x = x or parent.x + math.cos(math.rad(self.angle)) * 80
-   self.y = y or parent.y + math.sin(math.rad(self.angle)) * 80
-   
-   self.speed = 250
-   self.lifetime = 10
-   self.time = 0
+   self.y = y or parent.y + math.sin(math.rad(self.angle)) * 80 
 end
 
 function TankBullet:update(dt)
    self.x = self.x + math.cos(math.rad(self.angle)) * self.speed * dt
    self.y = self.y + math.sin(math.rad(self.angle)) * self.speed * dt
+	 print(dt)
    
    self.time = self.time + dt
    if self.time > self.lifetime then
