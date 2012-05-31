@@ -42,7 +42,6 @@ function Tank:init(x, y)
    self.particleRight:setColors(50,50,50,255,180,180,180,255)
    self.particleRight:stop()
    
-   self.track = TankTrack:new(self)
    self.forward = false
    self.backward = false
    self.left = false
@@ -51,6 +50,9 @@ function Tank:init(x, y)
    self.idle_src:setLooping(true)
    self.idle_src:setDistance(400,800)
    self.idle_src:play()
+
+   self.lastPosX = 0
+   self.lastPosY = 0
 end
 
 function Tank:readInput(f, b, l, r, ml, mr)
@@ -123,16 +125,19 @@ function Tank:update(dt)
    self.particleRight:setPosition(self.x + x, self.y + y)
    self.particleRight:update(dt)
    
-   self.track:add()
-   
    self.x = self.x + math.cos(math.rad(self.angle)) * self.speed * dt
    self.y = self.y + math.sin(math.rad(self.angle)) * self.speed * dt
 
    self.idle_src:setPosition(self.x, self.y, 0)
+
+   if( (self.lastPosX - self.x)^ 2 + (self.lastPosY - self.y)^ 2 > 64) then
+      self.lastPosX = self.x
+      self.lastPosY = self.y
+      globalDecals:addTrack(self.x, self.y, self.angle)
+   end
 end
 
 function Tank:draw()
-   self.track:draw()
    love.graphics.draw(tank_base, self.x, self.y, math.rad(self.angle), 1,1, self.width / 2, self.height / 2)	
    self.turret:draw()
    love.graphics.draw(self.particleLeft)
@@ -237,34 +242,7 @@ function TankTurret:fireMain()
    self.fire = true
 end
 
-TankTrack = class:new()
 
-tank_track = love.graphics.newImage("res/tank/tracks.png")
-
-function TankTrack:init(parent, buffer_size)
-   self.parent = parent
-   self.buffer_size = buffer_size or 1024
-   self.current_index = 0
-   self.last_post = {0, 0}
-   self.buffer = {}
-   self.height = 64
-   self.width = 8
-end
-
-function TankTrack:add()
-   if( (self.last_post[1] - self.parent.x)^ 2 + (self.last_post[2] - self.parent.y)^ 2 > 64) then
-      self.last_post[1] = self.parent.x
-      self.last_post[2] = self.parent.y
-      self.buffer[self.current_index + 1] = {self.parent.x, self.parent.y, self.parent.angle}
-      self.current_index = (self.current_index + 1) % self.buffer_size
-   end
-end
-
-function TankTrack:draw()
-   for i,v in ipairs(self.buffer) do 
-      love.graphics.draw(tank_track, v[1] -58 * math.cos(math.rad(v[3])), v[2] - 58 *  math.sin(math.rad(v[3])), math.rad(v[3]), 1, 1, 4, 32)
-   end	
-end
 
 TankBullet = class:new()
 
