@@ -6,12 +6,14 @@ function love.load()
    require "entity"
    require "decal"
    require "tank"
+   require "bulletSystem"
 
    love.audio.setDistanceModel('exponent')
    love.audio.setPosition(400, 300, 0)
    
    background = love.graphics.newImage("res/world/grass.jpg")
    globalDecals = Decal:new(1024)
+   bulletSystem = BulletSystem:new()
    entities = {}
    player = Tank:new(0,0)
    table.insert(entities, player)
@@ -28,6 +30,7 @@ function love.update(dt)
    for i,v in ipairs(entities) do
       v:update(dt)
    end
+   bulletSystem:update(dt)
 end
 
 function love.draw()
@@ -36,4 +39,5 @@ function love.draw()
    for i,v in ipairs(entities) do
       v:draw()
    end
+   bulletSystem:draw()
 end

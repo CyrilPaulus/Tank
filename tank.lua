@@ -1,40 +1,44 @@
 
 --Load ressources
-
 tank_base = love.graphics.newImage("res/tank/tank_base.png")
 tank_smoke = love.graphics.newImage("res/tank/smoke.png")
-tank_bullet = love.graphics.newImage("res/tank/bullet.png")
 tank_turret = love.graphics.newImage("res/tank/tank_turret.png")
 tank_muzzleflash = love.graphics.newImage("res/tank/muzzleflash.png")
 
---Classes definition
+--Class definition
 Tank = class("Tank", Entity)
 
 function Tank:initialize(x, y)
    Entity.initialize(self)
+   
+   --Overloard entity
+   self.x = x
+   self.y = y
+   self.offsetX = 64
+   self.offsetY = 32
+   self.image = tank_base;
+   self.width = 128;
+   self.height = 64;
+   
+   --New stuff
    self.speed = 0
    self.maxSpeed = 100
    self.rearSpeed = 50
    self.acceleration = 10
    self.deceleration = 60
-   self.rotSpeed = 0.34906585
+   self.angularSpeed = math.pi / 4
+   
    self.forward = false
    self.backward = false
    self.left = false
    self.right = false
+   
    self.lastPosX = 0
    self.lastPosY = 0
-   self.x = x
-   self.y = y
-   self.offsetX = 64
-   self.offsetY = 32
+   
    self.turret = TankTurret:new()
    self.turret:setParent(self)
-   
-   self.image = tank_base;
-   self.width = 128;
-   self.height = 64;
-   
+      
    self.particleLeft = love.graphics.newParticleSystem(tank_smoke, 128)
    self.particleLeft:setEmissionRate(2)
    self.particleLeft:setLifetime              (1)
@@ -68,17 +72,17 @@ function Tank:readInput(f, b, l, r, ml, mr)
    self.backward = b
    self.left = l
    self.right = r
+   
    if (ml) then
       self.turret:fireMain()
-   end
-   
+   end   
 end
 
 function Tank:update(dt)
+   Entity.update(self)
    
    self.particleLeft:start()	
    self.particleRight:start()	
-
    self.particleLeft:setDirection(self.angle - math.pi)
    self.particleRight:setDirection(self.angle - math.pi)
    
@@ -94,33 +98,32 @@ function Tank:update(dt)
 
    if (self.forward) then
       if(self.speed < 0) then
-	 self.speed = math.min(self.speed + self.deceleration * dt, self.maxSpeed)
+         self.speed = math.min(self.speed + self.deceleration * dt, self.maxSpeed)
       else
-	 self.speed = math.min(self.speed + self.acceleration * dt, self.maxSpeed)
+         self.speed = math.min(self.speed + self.acceleration * dt, self.maxSpeed)
       end
    elseif (self.backward) then
       if(self.speed > 0) then
-	 self.speed = math.max(self.speed - self.deceleration * dt, -self.maxRearSpeed)
+         self.speed = math.max(self.speed - self.deceleration * dt, -self.maxRearSpeed)
       else
-	 self.speed = math.max(self.speed - self.acceleration * dt, -self.maxRearSpeed)
+         self.speed = math.max(self.speed - self.acceleration * dt, -self.maxRearSpeed)
       end
    else 
       if(math.abs(self.speed) < self.deceleration * dt) then	
-	 self.speed = 0
+         self.speed = 0
       elseif (self.speed > 0) then
-	 self.speed = self.speed - self.deceleration * dt
+         self.speed = self.speed - self.deceleration * dt
       elseif (self.speed < 0) then
-	 self.speed = self.speed + self.deceleration * dt
+         self.speed = self.speed + self.deceleration * dt
       end
    end
-   
-   
+      
    if(self.left) then
-      self:rotate(self.rotSpeed * -dt)
+      self:rotate(self.angularSpeed * -dt)
    end
    
    if(self.right) then
-      self:rotate(self.rotSpeed * dt)
+      self:rotate(self.angularSpeed * dt)
    end
    
    self.turret:update(dt)
@@ -149,8 +152,7 @@ function Tank:draw()
    Entity.draw(self)	
    self.turret:draw()
    love.graphics.draw(self.particleLeft)
-   love.graphics.draw(self.particleRight)
-   
+   love.graphics.draw(self.particleRight)   
 end
 
 function Tank:rotate(rad)
@@ -165,7 +167,14 @@ end
 TankTurret = class("TankTurret", Entity)
 
 function TankTurret:initialize()
-   Entity.initialize(self)
+   
+   Entity.initialize(self)   
+   self.width = 128
+   self.height = 64
+   self.offsetX = 39
+   self.offsetY = 31.5
+   self.image = tank_turret;
+   
    self.fireDelay = 1.5
    self.firecounter = 0
    self.fire = true
@@ -174,12 +183,7 @@ function TankTurret:initialize()
    self.cannonY = 0
    self.drawMuzzle = false
    self.muzzleTime = 0
-   self.maxMuzzleTime = 0.1
-   self.width = 128
-   self.height = 64
-   self.offsetX = 39
-   self.offsetY = 31.5
-   self.image = tank_turret;
+   self.maxMuzzleTime = 0.1   
    self.bullets = {}
    self.cannon_src = love.audio.newSource("res/tank/cannon_shot.ogg")
    self.cannon_src:setDistance(400,800)
@@ -195,35 +199,33 @@ function TankTurret:update(dt)
    if(self.drawMuzzle) then
       self.muzzleTime = self.muzzleTime + dt
       if(self.muzzleTime > self.maxMuzzleTime) then
-	 self.drawMuzzle = false
-	 self.muzzleTime = 0
+         self.drawMuzzle = false
+         self.muzzleTime = 0
       end
    end
    self.firecounter = self.firecounter + dt
    
    if(self.fire and self.firecounter > self.fireDelay) then
       self.drawMuzzle = true
+
       if (self.cannon) then
-	 self.cannonX, self.cannonY = rot(90, 6, self.angle)
+         self.cannonX, self.cannonY = rot(90, 6, self.angle)
       else
-	 self.cannonX, self.cannonY = rot(90, -6, self.angle)
+         self.cannonX, self.cannonY = rot(90, -6, self.angle)
       end
+      
       self.cannon_src:setPosition(self.x + self.cannonX, self.y + self.cannonY, 0)
+
       if(not self.cannon_src:isStopped()) then
-	 self.cannon_src:stop()
+         self.cannon_src:stop()
       end
+
       self.cannon_src:play()
       self.cannon = not self.cannon
-      table.insert(self.bullets, TankBullet:new(self, self.x + self.cannonX, self.y + self.cannonY))
+      --FIRE BULLET HERE
+      bulletSystem:addBullet(self, self.x + self.cannonX, self.y + self.cannonY, self.angle)
       self.firecounter = 0
    end
-   
-   for i,v in ipairs(self.bullets) do
-      if(v:update(dt)) then
-	 table.remove(self.bullets, i)
-      end
-   end
-   
    
    self.fire = false
 end
@@ -239,41 +241,10 @@ function TankTurret:draw()
    end	
 end
 
-function TankTurret:rotate(deg)
-   self.angle = math.fmod(self.angle + deg, 360)
-end
-
 function TankTurret:fireMain() 
    self.fire = true
 end
 
-TankBullet = class("TankBullet")
 
-function TankBullet:initialize(parent, x, y) 
-   self.angle = 0
-   self.speed = 250
-   self.lifetime = 10
-   self.time = 0
-   self.parent = parent
-   self.angle = parent.angle
-   self.x = x or parent.x + math.cos(self.angle) * 80
-   self.y = y or parent.y + math.sin(self.angle) * 80 
-end
-
-function TankBullet:update(dt)
-   self.x = self.x + math.cos(self.angle) * self.speed * dt
-   self.y = self.y + math.sin(self.angle) * self.speed * dt
-   
-   self.time = self.time + dt
-   if self.time > self.lifetime then
-      return true
-   else
-      return false
-   end
-end
-
-function TankBullet:draw() 
-   love.graphics.draw(tank_bullet, self.x, self.y, self.angle, 0.5, 0.5, 16, 8)
-end
 
 

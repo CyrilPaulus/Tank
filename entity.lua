@@ -13,10 +13,12 @@ function Entity:initialize()
    self.offsetY = 0
    self.parentOffsetX = 0
    self.parentOffsetY = 0
+   self.scaleX = 1
+   self.scaleY = 1
 end
 
 function Entity:draw() 
-   love.graphics.draw(self.image, self.x, self.y, self.angle, 1,1, self.offsetX, self.offsetY)
+   love.graphics.draw(self.image, self.x, self.y, self.angle, self.scaleX, self.scaleY, self.offsetX, self.offsetY)
 end
 
 function Entity:rotate(rad)
