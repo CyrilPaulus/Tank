@@ -1,6 +1,7 @@
 
    require "32log"
    require "utils"
+   require "entity"
    require "decal"
    require "tank"
 

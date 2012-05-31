@@ -4,10 +4,7 @@
 tank_base = love.graphics.newImage("res/tank/tank_base.png")
 tank_smoke = love.graphics.newImage("res/tank/smoke.png")
 
-class "Tank" {
-	x = 0;
-	y = 0;
-	angle = 0;
+class "Tank" : extends(Entity){
 	width = 128;
 	height = 64;
 	
@@ -18,7 +15,7 @@ class "Tank" {
 	maxRearSpeed = 50;
 	acceleration = 10;
 	deceleration = 60;
-	rotSpeed = 20;
+	rotSpeed = 0.34906585;
 	
 	turret = nil;
 	particleLeft = nil;
@@ -84,8 +81,8 @@ function Tank:update(dt)
    self.particleLeft:start()	
    self.particleRight:start()	
 
-   self.particleLeft:setDirection(math.rad(self.angle - 180))
-   self.particleRight:setDirection(math.rad(self.angle - 180))
+   self.particleLeft:setDirection(self.angle - math.pi)
+   self.particleRight:setDirection(self.angle - math.pi)
 
    if(self.forward or self.backward) then
       self.particleLeft:setEmissionRate(10)
@@ -130,16 +127,16 @@ function Tank:update(dt)
    
    self.turret:update(dt)
    
-   x,y = rot(-58, -10, math.rad(self.angle))
+   x,y = rot(-58, -10, self.angle)
    self.particleLeft:setPosition(self.x + x, self.y + y)	
    self.particleLeft:update(dt)
    
-   x,y = rot(-58, 10, math.rad(self.angle))
+   x,y = rot(-58, 10, self.angle)
    self.particleRight:setPosition(self.x + x, self.y + y)
    self.particleRight:update(dt)
    
-   self.x = self.x + math.cos(math.rad(self.angle)) * self.speed * dt
-   self.y = self.y + math.sin(math.rad(self.angle)) * self.speed * dt
+   self.x = self.x + math.cos(self.angle) * self.speed * dt
+   self.y = self.y + math.sin(self.angle) * self.speed * dt
 
    self.idle_src:setPosition(self.x, self.y, 0)
 
@@ -151,16 +148,16 @@ function Tank:update(dt)
 end
 
 function Tank:draw()
-   love.graphics.draw(tank_base, self.x, self.y, math.rad(self.angle), 1,1, self.width / 2, self.height / 2)	
+   self.super.draw(self)	
    self.turret:draw()
    love.graphics.draw(self.particleLeft)
    love.graphics.draw(self.particleRight)
    
 end
 
-function Tank:rotate(deg)
-   self.angle = math.fmod(self.angle + deg, 360)
-   self.turret:rotate(deg)
+function Tank:rotate(rad)
+   self.super.rotate(self, rad)
+   self.turret:rotate(rad)
 end
 
 function Tank:lookAt(x, y) 
@@ -202,7 +199,7 @@ function TankTurret:__init(parent)
 end
 
 function TankTurret:lookAt(x, y) 
-   self.angle = math.deg(math.atan2(x - self.x, -(y - self.y))) - 90
+   self.angle = math.atan2(x - self.x, -(y - self.y)) - math.pi / 2
 end				 
 
 function TankTurret:update(dt)
@@ -220,9 +217,9 @@ function TankTurret:update(dt)
    if(self.fire and self.firecounter > self.firedelay) then
       self.drawMuzzle = true
       if (self.cannon) then
-	 self.cannonX, self.cannonY = rot(90, 6, math.rad(self.angle))
+	 self.cannonX, self.cannonY = rot(90, 6, self.angle)
       else
-	 self.cannonX, self.cannonY = rot(90, -6, math.rad(self.angle))
+	 self.cannonX, self.cannonY = rot(90, -6, self.angle)
       end
       self.cannon_src:setPosition(self.x + self.cannonX, self.y + self.cannonY, 0)
       if(not self.cannon_src:isStopped()) then
@@ -245,9 +242,9 @@ function TankTurret:update(dt)
 end
 
 function TankTurret:draw()
-   love.graphics.draw(tank_turret, self.x, self.y, math.rad(self.angle), 1,1, 39, 31.5)
+   love.graphics.draw(tank_turret, self.x, self.y, self.angle, 1,1, 39, 31.5)
    if(self.drawMuzzle) then
-      love.graphics.draw(tank_muzzleflash, self.x + self.cannonX, self.y + self.cannonY, math.rad(self.angle), 1, 1, 15, 6)
+      love.graphics.draw(tank_muzzleflash, self.x + self.cannonX, self.y + self.cannonY, self.angle, 1, 1, 15, 6)
    end
    
    for i,v in ipairs(self.bullets) do
@@ -283,13 +280,13 @@ class "TankBullet" {
 function TankBullet:__init(parent, x, y) 
    self.parent = parent
    self.angle = parent.angle
-   self.x = x or parent.x + math.cos(math.rad(self.angle)) * 80
-   self.y = y or parent.y + math.sin(math.rad(self.angle)) * 80 
+   self.x = x or parent.x + math.cos(self.angle) * 80
+   self.y = y or parent.y + math.sin(self.angle) * 80 
 end
 
 function TankBullet:update(dt)
-   self.x = self.x + math.cos(math.rad(self.angle)) * self.speed * dt
-   self.y = self.y + math.sin(math.rad(self.angle)) * self.speed * dt
+   self.x = self.x + math.cos(self.angle) * self.speed * dt
+   self.y = self.y + math.sin(self.angle) * self.speed * dt
 	 print(dt)
    
    self.time = self.time + dt
@@ -301,7 +298,7 @@ function TankBullet:update(dt)
 end
 
 function TankBullet:draw() 
-   love.graphics.draw(tank_bullet, self.x, self.y, math.rad(self.angle), 0.5, 0.5, 16, 8)
+   love.graphics.draw(tank_bullet, self.x, self.y, self.angle, 0.5, 0.5, 16, 8)
 end
 
 

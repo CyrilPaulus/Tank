@@ -22,6 +22,6 @@ end
 
 function Decal:draw()
    for i,v in ipairs(self.buffer) do 
-      love.graphics.draw(tank_track, v[1] -58 * math.cos(math.rad(v[3])), v[2] - 58 *  math.sin(math.rad(v[3])), math.rad(v[3]), 1, 1, 4, 32)
+      love.graphics.draw(tank_track, v[1] -58 * math.cos(v[3]), v[2] - 58 *  math.sin(v[3]),v[3], 1, 1, 4, 32)
    end	
 end
